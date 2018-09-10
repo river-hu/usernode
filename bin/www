@@ -47,7 +47,8 @@ var getAllNickname = function(){
   for(var k in ws.sockets.sockets){
       if(ws.sockets.sockets.hasOwnProperty(k)){
           result.push({
-              name: ws.sockets.sockets[k].nickname
+              name: ws.sockets.sockets[k].nickname,
+              id: ws.sockets.sockets[k].id
           });
       }
   }
@@ -55,7 +56,9 @@ var getAllNickname = function(){
 }
 ws.on('connection', function(client){
   console.log('\033[96msomeone is connect\033[39m \n');
+
   client.on('join', function(msg){
+
       // 检查是否有重复
       if(checkNickname(msg)){
           client.emit('nickname', '昵称有重复!');
@@ -63,8 +66,11 @@ ws.on('connection', function(client){
           client.nickname = msg;
           ws.sockets.emit('announcement', '系统', msg + ' 加入了聊天室!', {type:'join', name:getAllNickname()});
       }
+      client.emit('alluser',getAllNickname());  // 通过消息广播链接的用户昵称
   });
-
+  client.on('getuser', function(){    //接受客户端发送消息 ， 发送终端 ，终端识别显示需要的。
+    client.emit('alluser',getAllNickname());  // 通过消息广播链接的用户昵称
+    });
   // 监听发送消息
   client.on('send.message', function(id,msg){   //接受终端发送的消息 ， 终端消息分发用户
     console.log(id)
